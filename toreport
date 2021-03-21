@@ -33,23 +33,33 @@ def toreport(cfgfile):
 
     to_lists = dict()
 
+    # List of time off 'types'
+    to_types = config['types'].keys()
+
     for event in events:
-        if event.summary in config['types'].keys():
+        if event.summary in to_types:
             to_lists.setdefault(event.summary, list()).append(event)
 
     today = datetime.date.today()
 
-    for to_type in to_lists.keys():
+    total_hours_used = 0
+    total_hours_scheduled = 0
+    total_remaining_hours = 0
+
+    for to_type in to_types:
         type_hours_used = 0
         type_hours_scheduled = 0
 
+        print()
         print("Calculating {}".format(to_type))
+
+        to_list = to_lists.get(to_type, list())
 
         # Sort by start date, accounting for the fact that some don't have
         # the time zone set
-        to_lists[to_type].sort(key=lambda x: x.start if x.start.tzinfo else pytz.utc.localize(x.start))
+        to_list.sort(key=lambda x: x.start if x.start.tzinfo else pytz.utc.localize(x.start))
 
-        for event in to_lists[to_type]:
+        for event in to_list:
             if event.all_day:
                 hours = 8
             else:
@@ -69,6 +79,17 @@ def toreport(cfgfile):
         print("Scheduled {}".format(type_hours_scheduled))
         print("{} days ({} hours) of {} remain in {}".format(remaining_hours / 8,
             remaining_hours, to_type, year))
+
+        total_hours_used += type_hours_used
+        total_hours_scheduled += type_hours_scheduled
+        total_remaining_hours += remaining_hours
+
+    print()
+    print("Total used {}".format(total_hours_used))
+    print("Total scheduled {}".format(total_hours_scheduled))
+    print("Total of {} days ({} hours) of time off remain in {}".format(total_remaining_hours / 8,
+            total_remaining_hours, year))
+
 
 if __name__ == '__main__':
     def main(cmdln_args):
