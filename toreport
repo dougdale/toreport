@@ -29,21 +29,14 @@ def toreport(cfgfile):
     events = icalevents.events(config['url'],
                                fix_apple='icloud' in config['url'],
                                start=datetime.date(year, 1, 1),
-                               end=datetime.date(year,12,31))
+                               end=datetime.date(year, 12, 31))
 
     to_lists = dict()
 
-    to_types = config['types'].keys()
-
-    for to_type in to_types:
-        to_lists[to_type] = list()
-
     for event in events:
-        print(event.summary)
-        if event.summary in to_types and event.start.year == year:
-            to_lists[event.summary].append(event)
+        if event.summary in config['types'].keys():
+            to_lists.setdefault(event.summary, list()).append(event)
 
-    print(to_lists)
     today = datetime.date.today()
 
     for to_type in to_lists.keys():
@@ -52,6 +45,8 @@ def toreport(cfgfile):
 
         print("Calculating {}".format(to_type))
 
+        # Sort by start date, accounting for the fact that some don't have
+        # the time zone set
         to_lists[to_type].sort(key=lambda x: x.start if x.start.tzinfo else pytz.utc.localize(x.start))
 
         for event in to_lists[to_type]:
