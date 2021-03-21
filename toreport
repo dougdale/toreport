@@ -12,6 +12,7 @@ import yaml
 from icalevents import icalevents
 import sys
 import datetime
+import pytz
 
 class ToreportException(Exception):
     pass
@@ -23,7 +24,12 @@ def toreport(cfgfile):
     except IOError as err:
         raise ToreportException(err)
 
-    events = icalevents.events(config['url'], fix_apple='icloud' in config['url'])
+    year = config['year']
+
+    events = icalevents.events(config['url'],
+                               fix_apple='icloud' in config['url'],
+                               start=datetime.date(year, 1, 1),
+                               end=datetime.date(year,12,31))
 
     to_lists = dict()
 
@@ -31,8 +37,6 @@ def toreport(cfgfile):
 
     for to_type in to_types:
         to_lists[to_type] = list()
-
-    year = config['year']
 
     for event in events:
         print(event.summary)
@@ -47,6 +51,8 @@ def toreport(cfgfile):
         type_hours_scheduled = 0
 
         print("Calculating {}".format(to_type))
+
+        to_lists[to_type].sort(key=lambda x: x.start if x.start.tzinfo else pytz.utc.localize(x.start))
 
         for event in to_lists[to_type]:
             if event.all_day:
