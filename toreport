@@ -26,9 +26,11 @@ def toreport(cfgfile):
 
     year = config['year']
 
+    startdate = datetime.date(year, 1, 1)
+
     events = icalevents.events(config['url'],
                                fix_apple='icloud' in config['url'],
-                               start=datetime.date(year, 1, 1),
+                               start=startdate,
                                end=datetime.date(year, 12, 31))
 
     to_lists = dict()
@@ -60,6 +62,10 @@ def toreport(cfgfile):
         to_list.sort(key=lambda x: x.start if x.start.tzinfo else pytz.utc.localize(x.start))
 
         for event in to_list:
+            # The query above picks up items on 12/31 of previous year. Skip those.
+            if event.start.date() < startdate:
+                continue
+
             if event.all_day:
                 hours = 8
             else:
