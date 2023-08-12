@@ -17,6 +17,9 @@ import pytz
 class ToreportException(Exception):
     pass
 
+def dayshoursstring(hours):
+    return "{} days ({} hours)".format(hours / 8, hours)
+
 def toreport(cfgfile):
     try:
         with open(cfgfile, 'r') as yamlfile:
@@ -81,10 +84,9 @@ def toreport(cfgfile):
         remaining_hours = config['types'][to_type]['available'] -\
                           (type_hours_used + type_hours_scheduled)
 
-        print("Used {}".format(type_hours_used))
-        print("Scheduled {}".format(type_hours_scheduled))
-        print("{} days ({} hours) of {} remain in {}".format(remaining_hours / 8,
-            remaining_hours, to_type, year))
+        print("Used {}".format(dayshoursstring(type_hours_used)))
+        print("Scheduled {}".format(dayshoursstring(type_hours_scheduled)))
+        print("{} of {} remain in {}".format(dayshoursstring(remaining_hours), to_type, year))
 
         total_hours_used += type_hours_used
         total_hours_scheduled += type_hours_scheduled
@@ -93,8 +95,7 @@ def toreport(cfgfile):
     print()
     print("Total used {}".format(total_hours_used))
     print("Total scheduled {}".format(total_hours_scheduled))
-    print("Total of {} days ({} hours) of time off remain in {}".format(total_remaining_hours / 8,
-            total_remaining_hours, year))
+    print("Total of {} of time off remain in {}".format(dayshoursstring(total_remaining_hours), year))
 
 
 if __name__ == '__main__':
